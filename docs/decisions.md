@@ -28,6 +28,6 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Alternatives:** Scale the partial week up to 7 days (invents numbers); keep it with a `days_in_data` column (every downstream step would have to handle it). The original plan assumed exactly 277 full weeks; that was an arithmetic error caught while writing this entry.
 
 ## 2026-11-15: Commit the processed parquet only if it is small
-- **Decision:** Decide after the first build. Commit `data/processed/tx_weekly.parquet` only if it is well under 50 MB.
+- **Decision:** Commit `data/processed/tx_weekly.parquet`. The first build is 3.5 MB (2,046,387 rows), far below the 50 MB limit.
 - **Reason:** The deployed app may only load precomputed files, never raw data.
 - **Alternatives:** Rebuild from raw data in the app (not allowed by the project rules).
