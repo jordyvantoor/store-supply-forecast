@@ -1,0 +1,20 @@
+# Private planning files (never commit)
+docs/project-plan.md
+supply-demand-planning-application-plan.md
+CLAUDE.md
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data and secrets
+data/raw/
+.env
+.streamlit/secrets.toml
+
+# OS / editor
+.DS_Store
+.vscode/
