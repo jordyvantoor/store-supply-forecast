@@ -27,6 +27,11 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Reason:** A 2-day week would look like a ~70% sales drop in the most recent week, right where the backtest origins sit, and would distort the lags and baselines.
 - **Alternatives:** Scale the partial week up to 7 days (invents numbers); keep it with a `days_in_data` column (every downstream step would have to handle it). The original plan assumed exactly 277 full weeks; that was an arithmetic error caught while writing this entry.
 
+## 2026-11-15: matplotlib for notebooks, Plotly for the app
+- **Decision:** Notebooks use matplotlib (static PNG charts) with a shared style in `src/forecast/plotting.py`. The Streamlit app keeps Plotly. Added `matplotlib`, `ipykernel` and `nbconvert` to `requirements.txt`.
+- **Reason:** Readers will view the notebooks on GitHub, which does not render Plotly's interactive output (charts show up blank). `ipykernel` and `nbconvert` let the notebooks be run top to bottom from VS Code and from the command line (`jupyter nbconvert --to notebook --execute --inplace`).
+- **Alternatives:** Plotly with static export via kaleido (one library, but kaleido needs Chrome and is fiddly); interactive Plotly only (blank charts on GitHub).
+
 ## 2026-11-15: Commit the processed parquet only if it is small
 - **Decision:** Commit `data/processed/tx_weekly.parquet`. The first build is 3.5 MB (2,046,387 rows), far below the 50 MB limit.
 - **Reason:** The deployed app may only load precomputed files, never raw data.
