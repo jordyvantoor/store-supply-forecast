@@ -32,7 +32,7 @@ from xgboost import XGBRegressor
 from forecast import PROCESSED_DIR
 from forecast.backtest import (HORIZONS, MODELS_DIR, REPORTS_DIR, SERIES, add_week_index,
                                demand_type, make_origins, p90_coverage, scoreboard, split,
-                               update_metrics)
+                               update_metrics, volume_band_scores)
 from forecast.features import FEATURES, build_features, build_horizon_frame
 
 RANDOM_STATE = 42
@@ -278,6 +278,8 @@ def main() -> None:
     imp_mean = (imp.groupby(["h", "feature"], as_index=False)["importance"].mean()
                 .sort_values(["h", "importance"], ascending=[True, False]))
     board.to_csv(REPORTS_DIR / "model_scoreboard.csv", index=False)
+    volume_band_scores(scored, ["ma4", "hgbr", "xgb", "p50"]).to_csv(
+        REPORTS_DIR / "volume_bands.csv", index=False)
     cov.to_csv(REPORTS_DIR / "coverage.csv", index=False)
     imp_mean.to_csv(REPORTS_DIR / "feature_importance.csv", index=False)
 

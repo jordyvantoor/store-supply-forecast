@@ -138,6 +138,31 @@ def scoreboard(fc: pd.DataFrame, methods: list[str]) -> pd.DataFrame:
     return pd.concat(parts, ignore_index=True)[cols]
 
 
+VOLUME_BANDS = {"bottom 50%": 0.5, "50-90%": 0.9, "90-99%": 0.99, "top 1%": 1.0}
+
+
+def volume_band_scores(fc: pd.DataFrame, methods: list[str]) -> pd.DataFrame:
+    """WAPE and bias per method within volume bands of item-stores.
+
+    Item-stores are ranked by their average 4-week moving average over the
+    scored rows (a level known at each origin) and cut at the 50th, 90th and
+    99th percentiles. Also reports each band's share of units and P90 coverage
+    when a `p90` column is present.
+    """
+    level = fc.groupby(SERIES, observed=True)["ma4"].transform("mean")
+    bands = pd.qcut(level, [0, *VOLUME_BANDS.values()], labels=list(VOLUME_BANDS))
+    rows = []
+    for band, part in fc.groupby(bands, observed=True):
+        row = {"band": band, "share_of_units": part["actual"].sum() / fc["actual"].sum()}
+        for m in methods:
+            row[f"wape_{m}"] = wape(part["actual"], part[m])
+            row[f"bias_{m}"] = bias(part["actual"], part[m])
+        if "p90" in part:
+            row["p90_coverage"] = p90_coverage(part["actual"], part["p90"])
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 # --------------------------------------------------------------- demand type
 
 def demand_type(df: pd.DataFrame, cutoff_idx: int) -> pd.Series:
