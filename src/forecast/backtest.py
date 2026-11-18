@@ -43,11 +43,15 @@ def add_week_index(df: pd.DataFrame) -> pd.DataFrame:
     weeks = np.sort(df["wm_yr_wk"].unique())
     out = df.sort_values(SERIES + ["wm_yr_wk"], ignore_index=True)
     out["week_idx"] = np.searchsorted(weeks, out["wm_yr_wk"]).astype("int16")
+    check_no_gaps(out)
+    return out
 
-    step = out.groupby(SERIES, observed=True)["week_idx"].diff()
+
+def check_no_gaps(df: pd.DataFrame) -> None:
+    """Raise if any series skips a week or is out of order (needs `week_idx`)."""
+    step = df.groupby(SERIES, observed=True)["week_idx"].diff()
     if (step.dropna() != 1).any():
         raise ValueError("Some series have missing weeks; shift-based lags would be wrong")
-    return out
 
 
 def make_origins(n_weeks: int, n_origins: int = 4, step: int = 4,
