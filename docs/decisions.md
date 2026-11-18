@@ -111,3 +111,9 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Decision:** The app's forecast is the one made at the last fold origin (2016-04-16) for the 4 weeks after it, shown next to what actually sold.
 - **Reason:** Forecasting past the end of the data would need prices and calendar for weeks outside the processed table, which is a pipeline extension beyond the MVP. Showing forecast vs. actual is also more convincing for a portfolio.
 - **Alternatives:** Extend the pipeline with M5's future-week prices and calendar (after the MVP).
+
+## 2026-11-19: Known weakness: HGBR on the top-selling item-stores (open)
+- **Finding:** HGBR's item-level WAPE is far worse than the 4-week moving average on the top 1% of item-stores by volume (18% of units). It beats the moving average in the 50–99% volume bands. Cause: HGBR sorts each feature into at most 255 quantile bins (95 for `roll_mean_4`), and everything above about 160 units/week shares the top bin, so the model can't tell a 200-unit seller from a 500-unit one. XGBoost avoids this through `item_id`.
+- **Decision for now:** keep HGBR as the main model, report the weakness openly (notebook 03, section 1b), and propose a fix as the next step.
+- **Proposed fix:** train on sales relative to each series' own level (e.g. ÷ the 13-week average, with the lag and rolling features scaled the same way), then multiply back. All series then share one scale, so the bins no longer clip the top. This needs leakage tests for the scaling.
+- **Alternatives:** use XGBoost as the main point forecast (it is better at item level, but there is no XGBoost P90 yet); accept the weakness.
