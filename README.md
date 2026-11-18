@@ -4,7 +4,9 @@
 
 This project forecasts weekly unit sales for every item in the three Texas stores of the Walmart M5 dataset (TX_1–TX_3). It turns the forecasts into order quantities and flags the item-stores a planner should look at, all in a Streamlit planning app with an Excel export. Every model was tested on a rolling-origin backtest against simple baselines. Where the model doesn't beat them, the results below say so.
 
-**Live app:** *link follows after deployment*
+**Live app:** [store-supply-forecast.streamlit.app](https://store-supply-forecast.streamlit.app)
+
+![Overview page: forecast accuracy and stocking KPIs, and total weekly units actual vs forecast](docs/images/app-overview.png)
 
 ## Results
 
@@ -49,6 +51,10 @@ Exception flags in the planning week (starting 2016-04-16): 301 forecast drift, 
    - baselines: naive, seasonal naive, 4-week moving average
 5. **Inventory** (`forecast.inventory`): a simulation with weekly review, 1-week lead time and lost sales. The order-up-to level is P90 for the next 2 weeks. It compares baseline-driven and model-driven orders at equal fill rate.
 6. **Exceptions and export** (`forecast.exceptions`, `forecast.export`): flags for forecast drift, projected stockouts and sudden zero-sales runs, each with a plain-language reason. The Excel workbook uses live order formulas.
+
+The forecast explorer shows one item-store at a time: sales history, the P50 forecast with its P50–P90 range, the moving-average baseline, what actually sold, and this week's order.
+
+![Forecast explorer: history, P50/P90 forecast, baseline and actuals for one item-store, with the order calculation](docs/images/app-explorer.png)
 
 Every modeling choice, with the alternatives considered, is in [`docs/decisions.md`](docs/decisions.md). The notebooks in [`notebooks/`](notebooks/) tell the story with charts.
 
