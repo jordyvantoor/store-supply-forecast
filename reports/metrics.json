@@ -851,5 +851,57 @@
     "n_forecast_rows_all_weeks": 530526,
     "n_scored_rows": 146352,
     "runtime_minutes": 12.3
+  },
+  "inventory": {
+    "generated_by": "python -m forecast.inventory",
+    "weeks_simulated": 16,
+    "reviews": 15,
+    "n_series": 9147,
+    "policies": [
+      {
+        "policy": "model",
+        "group": "all",
+        "fill_rate": 0.9721301139477013,
+        "avg_on_hand": 12.786375203113977,
+        "stockout_week_share": 0.04458428993112496,
+        "lost_units": 35399.743996022735
+      },
+      {
+        "policy": "baseline",
+        "group": "all",
+        "fill_rate": 0.9648674911806127,
+        "avg_on_hand": 12.654500976857522,
+        "stockout_week_share": 0.06232917896578113,
+        "lost_units": 44624.57491970062
+      }
+    ],
+    "baseline_avg_on_hand_at_model_fill_rate": 14.380598660002528,
+    "inventory_saving_at_equal_fill_rate": 0.11085932474582194,
+    "saving_by_target_fill_rate": [
+      {
+        "fill_rate": 0.95,
+        "model_avg_on_hand": 9.844439840887347,
+        "baseline_avg_on_hand": 10.446734093642677,
+        "inventory_saving": 0.05765383203558849
+      },
+      {
+        "fill_rate": 0.96,
+        "model_avg_on_hand": 10.92200069009936,
+        "baseline_avg_on_hand": 11.833460368656693,
+        "inventory_saving": 0.07702393468706059
+      },
+      {
+        "fill_rate": 0.97,
+        "model_avg_on_hand": 12.419607835863514,
+        "baseline_avg_on_hand": 13.80846835302023,
+        "inventory_saving": 0.10058034545539873
+      },
+      {
+        "fill_rate": 0.98,
+        "model_avg_on_hand": 14.889878903488153,
+        "baseline_avg_on_hand": 17.257637398424134,
+        "inventory_saving": 0.13720061676299855
+      }
+    ]
   }
 }
