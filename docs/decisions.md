@@ -36,3 +36,23 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Decision:** Commit `data/processed/tx_weekly.parquet`. The first build is 3.5 MB (2,046,387 rows), far below the 50 MB limit.
 - **Reason:** The deployed app may only load precomputed files, never raw data.
 - **Alternatives:** Rebuild from raw data in the app (not allowed by the project rules).
+
+## 2026-11-18: Weeks are counted with `week_idx`, and lags are shifts within a series
+- **Decision:** All week arithmetic uses `week_idx` (0–276), the position of each `wm_yr_wk`. "k weeks earlier" is `groupby(series).shift(k)`. `add_week_index` checks that every series has one row per week from its first listing to the end, and raises an error if not.
+- **Reason:** `wm_yr_wk` jumps at year ends (11152 → 11201), so subtracting week codes gives wrong distances. A shift counts rows, so it only means "weeks" when there are no gaps; that is why the check exists.
+- **Alternatives:** Join on computed week codes (more code, and easy to get wrong at year ends).
+
+## 2026-11-18: Backtest origins and the training-window rule
+- **Decision:** Four origins at `week_idx` 260, 264, 268 and 272 (week starts 2016-01-23 to 2016-04-16), with horizons 1–4. For a forecast at origin `o` and horizon `h`, training rows must have their *target* at or before `o`, so `origin_idx ≤ o − h`.
+- **Reason:** The last origin's 4-week-ahead target is the final week, so the four folds' targets cover the last 16 weeks with no overlap. The training rule is the subtle part: a row made at `o − 1` for horizon 4 has its target at `o + 3`, after the origin, so `origin_idx < o` would leak future sales. Tests check both points.
+- **Alternatives:** Overlapping origins one week apart (more folds, but correlated); a single holdout (one origin can be unrepresentative).
+
+## 2026-11-18: Seasonal-naive fallback and short histories
+- **Decision:** Seasonal naive uses the sales in week `o + h − 52`. If the series wasn't listed then, it falls back to naive (flagged as `snaive_fallback`; 0.7% of backtest rows). The 4-week moving average uses the weeks available if the series is younger than 4 weeks.
+- **Reason:** Every method has to be scored on exactly the same rows, otherwise WAPE comparisons are unfair. Naive is the simplest honest stand-in.
+- **Alternatives:** Drop rows without last-year data (each method would be scored on a different set); fill with zero (unfair to seasonal naive).
+
+## 2026-11-18: Demand type from history up to the first origin, item level only
+- **Decision:** Syntetos–Boylan class per item-store, from weeks up to and including the first origin (`week_idx` 260). ADI = listed weeks ÷ weeks with sales; CV² uses the population standard deviation of non-zero weeks. Results are split by demand type at item-store level only.
+- **Reason:** A label computed from the test weeks would quietly use future data when choosing how to slice the results. Demand type describes a single series, so it has no clean meaning for a department total that mixes types.
+- **Alternatives:** Classify on the full history (leaks); reclassify at each origin (more precise, but the groups would change between folds).
