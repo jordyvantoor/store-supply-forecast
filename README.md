@@ -4,7 +4,7 @@
 
 This project forecasts weekly unit sales for every item in the three Texas stores of the Walmart M5 dataset (TX_1–TX_3). It turns the forecasts into order quantities and flags the item-stores a planner should look at, all in a Streamlit planning app with an Excel export. Every model was tested on a rolling-origin backtest against simple baselines. Where the model doesn't beat them, the results below say so.
 
-**Live app:** *link follows after deployment*
+**Live app:** [store-supply-forecast.streamlit.app](https://store-supply-forecast.streamlit.app)
 
 ## Results
 
