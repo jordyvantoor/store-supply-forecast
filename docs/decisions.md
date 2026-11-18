@@ -56,3 +56,23 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Decision:** Syntetos–Boylan class per item-store, from weeks up to and including the first origin (`week_idx` 260). ADI = listed weeks ÷ weeks with sales; CV² uses the population standard deviation of non-zero weeks. Results are split by demand type at item-store level only.
 - **Reason:** A label computed from the test weeks would quietly use future data when choosing how to slice the results. Demand type describes a single series, so it has no clean meaning for a department total that mixes types.
 - **Alternatives:** Classify on the full history (leaks); reclassify at each origin (more precise, but the groups would change between folds).
+
+## 2026-11-18: Feature table built in origin frame, then shifted per horizon
+- **Decision:** `build_features` makes one row per series × week, read as "standing at origin week `o`". Sales features on that row use only sales ≤ `o`: lags are shifts and rolling windows end at `o`. `build_horizon_frame(features, h)` then attaches the target (sales at `o + h`) and the target week's known-in-advance features with `shift(-h)`.
+- **Reason:** Leakage becomes hard by construction. No sales feature is ever computed from a row after the origin, and the only forward shift touches the target and the known-in-advance columns. One origin-level table serves all four horizon models.
+- **Alternatives:** Compute features directly in the target week with horizon-specific shifts (the same result, but every feature needs its own `h` offset, which is easy to get wrong).
+
+## 2026-11-18: "Lag 52" means same week last year relative to the target
+- **Decision:** The plan's lag 52 is `sales_same_week_last_year` = sales in week `o + h − 52`. It differs per horizon. The other lags (1, 2, 4, 8, 13) are counted back from the origin.
+- **Reason:** Its job is seasonality, so it has to line up with the week being forecast. For h ≤ 4 that week is always at or before the origin, so it is allowed.
+- **Alternatives:** Sales 52 weeks before the origin (misaligned with the target by `h` weeks).
+
+## 2026-11-18: Zero-sales share over 52 weeks, and weeks since listed
+- **Decision:** `zero_share_52` = share of zero-sales weeks in the trailing 52 weeks (or since listing, if shorter). Added `weeks_since_listed` as a feature; it was not in the original plan.
+- **Reason:** A year-long window makes the zero share a stable description of how intermittent a series is, matching the demand-type idea. The EDA showed new listings sell less than established items, so a series' age is useful information. It uses only data up to the origin and has its own leakage test.
+- **Alternatives:** A 13-week zero share (reacts faster but is noisier); leave age out.
+
+## 2026-11-18: Price features use prices up to the target week only
+- **Decision:** `price_ratio_13` = price in the target week ÷ mean price over the 13 weeks ending at the target week. `price_rel_dept` = price ÷ mean price of the same department × store in that week.
+- **Reason:** Prices are known in advance (CLAUDE.md rule 4), so the target week's price is allowed. Prices after the target week are not; a leakage test checks this.
+- **Alternatives:** Ratio against the price at the origin (simpler, but ignores the price history before it).

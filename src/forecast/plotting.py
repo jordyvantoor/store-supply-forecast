@@ -13,6 +13,16 @@ import matplotlib.pyplot as plt
 STORE_COLORS = {"TX_1": "#2a78d6", "TX_2": "#eb6834", "TX_3": "#1baf7a"}
 SINGLE_COLOR = "#2a78d6"  # for charts with one series
 
+# Fixed colors per forecasting method, so a method looks the same in every
+# chart. Blue and orange are kept for the ML models; the baselines get the
+# next slots. Validated as a set (light mode). Aqua and yellow are below 3:1
+# contrast, so charts using them also show a table and distinct markers.
+METHOD_COLORS = {"hgbr": "#2a78d6", "xgb": "#eb6834",
+                 "naive": "#1baf7a", "ma4": "#6250d6", "snaive": "#eda100"}
+METHOD_MARKERS = {"hgbr": "o", "xgb": "D", "naive": "s", "ma4": "^", "snaive": "v"}
+METHOD_LABELS = {"hgbr": "HistGradientBoosting", "xgb": "XGBoost", "naive": "Naive (last week)",
+                 "ma4": "4-week moving average", "snaive": "Seasonal naive"}
+
 INK = "#0b0b0b"
 INK_SECONDARY = "#52514e"
 MUTED = "#898781"
