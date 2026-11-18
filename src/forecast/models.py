@@ -25,7 +25,6 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.inspection import permutation_importance
 from xgboost import XGBRegressor
@@ -34,8 +33,7 @@ from forecast import PROCESSED_DIR
 from forecast.backtest import (HORIZONS, MODELS_DIR, REPORTS_DIR, SERIES, add_week_index,
                                demand_type, make_origins, p90_coverage, scoreboard, split,
                                update_metrics, volume_band_scores)
-from forecast.features import (FEATURES, HORIZON_SALES_FEATURES, SALES_FEATURES,
-                               build_features, build_horizon_frame)
+from forecast.features import FEATURES, build_features, build_horizon_frame
 
 RANDOM_STATE = 42
 
@@ -48,59 +46,6 @@ POINT_METHODS = ["naive", "ma4", "snaive", "hgbr", "xgb", "p50"]  # scored on WA
 # The item's own sales level reaches HGBR through the lag and rolling features.
 HGBR_FEATURES = [f for f in FEATURES if f != "item_id"]
 ERROR_WINDOW = 52  # weeks of past forecast errors used for the baseline P90
-
-# Level scaling for HGBR (see LevelScaledRegressor): the series' level is its
-# 13-week average up to the origin, floored at 1 unit/week.
-LEVEL_FEATURE = "roll_mean_13"
-LEVEL_FLOOR = 1.0
-SCALED_FEATURES = ([f for f in SALES_FEATURES if f.startswith(("lag_", "roll_mean_", "roll_std_"))]
-                   + HORIZON_SALES_FEATURES)
-
-
-class LevelScaledRegressor(RegressorMixin, BaseEstimator):
-    """Fit a model on sales relative to each series' own level, predict in units.
-
-    Why: HGBR sorts every feature into at most 255 bins. Sales are very skewed,
-    so all top sellers (above ~160 units/week) share one bin and look alike.
-    Dividing the sales features and the target by the series' level puts every
-    series on the same scale, so the bins stop clipping the top.
-
-    How:
-    - level = max(roll_mean_13, 1): the 13-week average up to the origin (only
-      sales <= origin, so no leakage), floored so slow sellers aren't blown up.
-    - Sales features (lags, rolling stats, same week last year) and the target
-      are divided by the level; `level` itself is added as a feature so the
-      model still knows how big the series is.
-    - Each row is weighted by its level. Poisson deviance and pinball (quantile)
-      loss both scale linearly, so loss(y/L, f/L) * L == loss(y, f): the model
-      minimises exactly the same loss as without scaling.
-    - Predictions are multiplied back by the level.
-    """
-
-    def __init__(self, estimator):
-        self.estimator = estimator
-
-    @staticmethod
-    def level(X: pd.DataFrame) -> pd.Series:
-        return X[LEVEL_FEATURE].clip(lower=LEVEL_FLOOR)
-
-    @staticmethod
-    def scale(X: pd.DataFrame, level: pd.Series) -> pd.DataFrame:
-        out = X.copy()
-        for c in SCALED_FEATURES:
-            out[c] = X[c] / level
-        out["level"] = level
-        return out
-
-    def fit(self, X: pd.DataFrame, y: pd.Series):
-        lvl = self.level(X)
-        self.estimator_ = clone(self.estimator).fit(self.scale(X, lvl), y / lvl,
-                                                     sample_weight=lvl)
-        return self
-
-    def predict(self, X: pd.DataFrame) -> np.ndarray:
-        lvl = self.level(X)
-        return self.estimator_.predict(self.scale(X, lvl)) * lvl.to_numpy()
 
 
 # ----------------------------------------------------------------- baselines
@@ -182,16 +127,15 @@ def make_model(name: str):
     HGBR: `early_stopping=False` because the default early stopping holds out a
     random 10% of training rows, which is a random split inside time-series
     data. Fixed 100 iterations (the default) keep training deterministic.
-    The HGBR models are wrapped in LevelScaledRegressor (top-seller fix).
     """
     hgbr = dict(categorical_features="from_dtype", early_stopping=False,
                 random_state=RANDOM_STATE)
     if name == "hgbr":
-        return LevelScaledRegressor(HistGradientBoostingRegressor(loss="poisson", **hgbr))
+        return HistGradientBoostingRegressor(loss="poisson", **hgbr)
     if name == "p50":
-        return LevelScaledRegressor(HistGradientBoostingRegressor(loss="quantile", quantile=0.5, **hgbr))
+        return HistGradientBoostingRegressor(loss="quantile", quantile=0.5, **hgbr)
     if name == "p90":
-        return LevelScaledRegressor(HistGradientBoostingRegressor(loss="quantile", quantile=0.9, **hgbr))
+        return HistGradientBoostingRegressor(loss="quantile", quantile=0.9, **hgbr)
     if name == "xgb":
         return XGBRegressor(objective="count:poisson", tree_method="hist",
                             enable_categorical=True, random_state=RANDOM_STATE)
