@@ -67,3 +67,11 @@ def test_inventory_at_fill_rate_interpolates():
     curve = pd.DataFrame({"fill_rate": [0.8, 0.9, 1.0], "avg_on_hand": [2.0, 4.0, 8.0]})
     assert inventory_at_fill_rate(curve, 0.85) == pytest.approx(3.0)
     assert np.isnan(inventory_at_fill_rate(curve, 0.5))
+
+
+def test_arrivals_record_the_week_an_order_lands():
+    """Hand example above: orders of 3 placed at the end of weeks 1 and 2 land in weeks 3 and 4."""
+    sim = simulate(np.array([[3.0, 5.0, 0.0, 4.0]]), np.full((1, 3), 6.0))
+    assert sim["arrivals"][0, 3] == 3
+    assert sim["arrivals"][0, 4] == 3
+    assert sim["arrivals"][0].sum() == 6
