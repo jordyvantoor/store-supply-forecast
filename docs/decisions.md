@@ -76,3 +76,38 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Decision:** `price_ratio_13` = price in the target week ÷ mean price over the 13 weeks ending at the target week. `price_rel_dept` = price ÷ mean price of the same department × store in that week.
 - **Reason:** Prices are known in advance (CLAUDE.md rule 4), so the target week's price is allowed. Prices after the target week are not; a leakage test checks this.
 - **Alternatives:** Ratio against the price at the origin (simpler, but ignores the price history before it).
+
+## 2026-11-19: `item_id` is not a feature in HistGradientBoosting (deviation from CLAUDE.md)
+- **Decision:** HGBR models (`hgbr`, `p50`, `p90`) use department, category and store as categoricals but leave out `item_id`. XGBoost (`xgb`) does use `item_id` as a categorical.
+- **Reason:** HGBR's native categorical support allows at most 255 levels, and there are 3,049 items. Each item's own sales level still reaches the model through the lag and rolling features, which matter more than a fixed item identity anyway. XGBoost shows whether the item identity adds anything.
+- **Alternatives:** Integer-encode `item_id` as a number (the tree would split on arbitrary ID order); target-encode it (needs its own leakage-safe scheme per fold); one-hot (3,049 sparse columns).
+
+## 2026-11-19: HGBR without early stopping
+- **Decision:** `early_stopping=False`, keeping the default 100 iterations.
+- **Reason:** With more than 10,000 rows, HGBR's default early stopping holds out a *random* 10% of the training rows. That's a random split inside time-series data, and the result depends on the draw. Fixed iterations are deterministic, which the end-to-end leakage test relies on, and stay close to the defaults.
+- **Alternatives:** Early stopping on a time-based validation slice (more code; a later tuning step).
+
+## 2026-11-19: Point forecast = Poisson mean; P50 reported next to it
+- **Decision:** `hgbr` (Poisson loss) is the main point forecast. The median model `p50` is scored alongside it on the same rows.
+- **Reason:** Poisson suits non-negative counts with many zeros, and it predicts the *mean*, which keeps total bias near zero. WAPE, however, is minimized by the *median*. For skewed or intermittent series the median is lower than the mean (often 0), so `p50` may win on WAPE while under-forecasting totals. Both are shown so the trade-off is visible instead of hidden.
+- **Alternatives:** Use only the model that wins on WAPE (flatters the metric, under-stocks); Tweedie loss (an extra parameter to tune).
+
+## 2026-11-19: P90 from quantile loss; crossing fixed; baseline P90 from past errors
+- **Decision:** `p90` = HGBR with quantile loss 0.9. If it comes out below `p50` on a row, it is raised to `p50`, and the count is reported. The baseline's P90 = 4-week moving average + the 90th percentile of that series' own moving-average errors for the same horizon, over the 52 weeks whose targets are at or before the fold origin.
+- **Reason:** Two separately trained quantile models can cross, and a P90 below the median makes no sense. The baseline needs a P90 too, so the stocking comparison is fair. "Safety stock from historical forecast error" is what a planner would do without a model.
+- **Alternatives:** Assume Poisson-distributed demand for the baseline P90 (understates the spread of retail sales, which would handicap the baseline).
+
+## 2026-11-19: Forecasts for every week of the test window; scores on the fold origins only
+- **Decision:** Every week from the first fold origin onwards is forecast by the model of the latest fold origin at or before it, using that week's features. WAPE, bias and coverage use only the 4 fold origins. The inventory simulation uses all weeks.
+- **Reason:** A weekly review policy needs an order-up-to level every week. The model only saw targets up to its fold origin, which is earlier than the week it forecasts, so this doesn't leak. The scoreboard follows CLAUDE.md's 4-origin design.
+- **Alternatives:** Retrain every week (16 times the training cost for little gain); simulate only at fold origins (not a weekly review).
+
+## 2026-11-19: Inventory comparison at equal fill rate
+- **Decision:** Besides simulating both policies as they are, scale every order-up-to level by a factor `k` (0.5–2.0) and trace fill rate vs. average on-hand. The headline is the baseline's inventory, interpolated at the model policy's fill rate, compared with the model's inventory.
+- **Reason:** As-is results usually differ on *both* fill rate and inventory, which makes "better" ambiguous. Comparing inventory at the same fill rate turns it into one number. `k` is chosen on the test window for both sides; it is a way to compare, not a policy someone would run.
+- **Alternatives:** Report only the as-is numbers (ambiguous); tune the target service level per policy (more moving parts).
+
+## 2026-11-19: The app shows the last backtest origin, not a future forecast
+- **Decision:** The app's forecast is the one made at the last fold origin (2016-04-16) for the 4 weeks after it, shown next to what actually sold.
+- **Reason:** Forecasting past the end of the data would need prices and calendar for weeks outside the processed table, which is a pipeline extension beyond the MVP. Showing forecast vs. actual is also more convincing for a portfolio.
+- **Alternatives:** Extend the pipeline with M5's future-week prices and calendar (after the MVP).
