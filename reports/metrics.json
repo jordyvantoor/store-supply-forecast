@@ -1,0 +1,702 @@
+{
+  "generated_by": "python -m forecast.backtest",
+  "origins": [
+    {
+      "origin_idx": 260,
+      "wm_yr_wk": 11552,
+      "week_start": "2016-01-23"
+    },
+    {
+      "origin_idx": 264,
+      "wm_yr_wk": 11604,
+      "week_start": "2016-02-20"
+    },
+    {
+      "origin_idx": 268,
+      "wm_yr_wk": 11608,
+      "week_start": "2016-03-19"
+    },
+    {
+      "origin_idx": 272,
+      "wm_yr_wk": 11612,
+      "week_start": "2016-04-16"
+    }
+  ],
+  "horizons": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "n_series": 9147,
+  "n_forecast_rows": 146352,
+  "snaive_fallback_share": 0.007092489340767465,
+  "demand_type_counts": {
+    "smooth": 4344,
+    "intermittent": 3208,
+    "lumpy": 932,
+    "erratic": 663
+  },
+  "baselines": [
+    {
+      "level": "item-store-week",
+      "group_by": "overall",
+      "group": "all",
+      "method": "naive",
+      "wape": 0.4424455135850931,
+      "bias": -0.053201162985689415,
+      "n_rows": 146352,
+      "actual_units": 1270179
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "overall",
+      "group": "all",
+      "method": "ma4",
+      "wape": 0.40246020442787983,
+      "bias": -0.029481671480948747,
+      "n_rows": 146352,
+      "actual_units": 1270179
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "overall",
+      "group": "all",
+      "method": "snaive",
+      "wape": 0.6462136439037333,
+      "bias": -0.05177931614363015,
+      "n_rows": 146352,
+      "actual_units": 1270179
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "1",
+      "method": "naive",
+      "wape": 0.40561627061820227,
+      "bias": -0.015659684252571752,
+      "n_rows": 36588,
+      "actual_units": 305434
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "1",
+      "method": "ma4",
+      "wape": 0.3730511337964994,
+      "bias": 0.009000307758795682,
+      "n_rows": 36588,
+      "actual_units": 305434
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "1",
+      "method": "snaive",
+      "wape": 0.667997014084876,
+      "bias": -0.015194772029309115,
+      "n_rows": 36588,
+      "actual_units": 305434
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "2",
+      "method": "naive",
+      "wape": 0.4386536139382439,
+      "bias": -0.07387133739126149,
+      "n_rows": 36588,
+      "actual_units": 324632
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "2",
+      "method": "ma4",
+      "wape": 0.39860673008206216,
+      "bias": -0.050669681362280984,
+      "n_rows": 36588,
+      "actual_units": 324632
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "2",
+      "method": "snaive",
+      "wape": 0.6505150447275685,
+      "bias": -0.027927006579758003,
+      "n_rows": 36588,
+      "actual_units": 324632
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "3",
+      "method": "naive",
+      "wape": 0.45267392187519234,
+      "bias": -0.07468084058649005,
+      "n_rows": 36588,
+      "actual_units": 324916
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "3",
+      "method": "ma4",
+      "wape": 0.4094042767976954,
+      "bias": -0.05149946447697251,
+      "n_rows": 36588,
+      "actual_units": 324916
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "3",
+      "method": "snaive",
+      "wape": 0.6342685494096936,
+      "bias": -0.07392679954203547,
+      "n_rows": 36588,
+      "actual_units": 324916
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "4",
+      "method": "naive",
+      "wape": 0.4714956043363357,
+      "bias": -0.04614891639197074,
+      "n_rows": 36588,
+      "actual_units": 315197
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "4",
+      "method": "ma4",
+      "wape": 0.42776898257280366,
+      "bias": -0.022252749867543154,
+      "n_rows": 36588,
+      "actual_units": 315197
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "h",
+      "group": "4",
+      "method": "snaive",
+      "wape": 0.6329882581369747,
+      "bias": -0.08896658280377034,
+      "n_rows": 36588,
+      "actual_units": 315197
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "260",
+      "method": "naive",
+      "wape": 0.4542642773846981,
+      "bias": -0.12609109739959704,
+      "n_rows": 36588,
+      "actual_units": 318143
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "260",
+      "method": "ma4",
+      "wape": 0.419394737586557,
+      "bias": -0.09473412899230849,
+      "n_rows": 36588,
+      "actual_units": 318143
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "260",
+      "method": "snaive",
+      "wape": 0.6576979534360334,
+      "bias": -0.05062503339693157,
+      "n_rows": 36588,
+      "actual_units": 318143
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "264",
+      "method": "naive",
+      "wape": 0.4430259957192488,
+      "bias": -0.02127037961498644,
+      "n_rows": 36588,
+      "actual_units": 314898
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "264",
+      "method": "ma4",
+      "wape": 0.40263355118165245,
+      "bias": 0.01030492413416408,
+      "n_rows": 36588,
+      "actual_units": 314898
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "264",
+      "method": "snaive",
+      "wape": 0.6527574008091509,
+      "bias": -0.0599622734980851,
+      "n_rows": 36588,
+      "actual_units": 314898
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "268",
+      "method": "naive",
+      "wape": 0.43727521519986395,
+      "bias": -0.007748157606829929,
+      "n_rows": 36588,
+      "actual_units": 311687
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "268",
+      "method": "ma4",
+      "wape": 0.3991456172378059,
+      "bias": 0.010302001687590436,
+      "n_rows": 36588,
+      "actual_units": 311687
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "268",
+      "method": "snaive",
+      "wape": 0.657958143907189,
+      "bias": -0.028230243802276,
+      "n_rows": 36588,
+      "actual_units": 311687
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "272",
+      "method": "naive",
+      "wape": 0.43528211620182455,
+      "bias": -0.056374077818166175,
+      "n_rows": 36588,
+      "actual_units": 325451
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "272",
+      "method": "ma4",
+      "wape": 0.38891261664582377,
+      "bias": -0.042292080835517484,
+      "n_rows": 36588,
+      "actual_units": 325451
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "origin_idx",
+      "group": "272",
+      "method": "snaive",
+      "wape": 0.617407843269801,
+      "bias": -0.06754319390630233,
+      "n_rows": 36588,
+      "actual_units": 325451
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "erratic",
+      "method": "naive",
+      "wape": 0.5246243663183324,
+      "bias": -0.059094818908877945,
+      "n_rows": 10608,
+      "actual_units": 109282
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "erratic",
+      "method": "ma4",
+      "wape": 0.4815340129207006,
+      "bias": -0.03007814644680734,
+      "n_rows": 10608,
+      "actual_units": 109282
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "erratic",
+      "method": "snaive",
+      "wape": 0.7674548416024597,
+      "bias": -0.047006826375798394,
+      "n_rows": 10608,
+      "actual_units": 109282
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "intermittent",
+      "method": "naive",
+      "wape": 0.5586257976298997,
+      "bias": -0.07237541780613795,
+      "n_rows": 51328,
+      "actual_units": 210624
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "intermittent",
+      "method": "ma4",
+      "wape": 0.5198030613795199,
+      "bias": -0.047473222424794896,
+      "n_rows": 51328,
+      "actual_units": 210624
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "intermittent",
+      "method": "snaive",
+      "wape": 0.8570723184442419,
+      "bias": -0.2277328319659678,
+      "n_rows": 51328,
+      "actual_units": 210624
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "lumpy",
+      "method": "naive",
+      "wape": 0.6781398506449423,
+      "bias": -0.06001357773251867,
+      "n_rows": 14912,
+      "actual_units": 58920
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "lumpy",
+      "method": "ma4",
+      "wape": 0.603173794976239,
+      "bias": -0.0608112695179905,
+      "n_rows": 14912,
+      "actual_units": 58920
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "lumpy",
+      "method": "snaive",
+      "wape": 0.9591989137813985,
+      "bias": -0.21832993890020366,
+      "n_rows": 14912,
+      "actual_units": 58920
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "smooth",
+      "method": "naive",
+      "wape": 0.38933733324507797,
+      "bias": -0.04749745611446868,
+      "n_rows": 69504,
+      "actual_units": 891353
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "smooth",
+      "method": "ma4",
+      "wape": 0.3517702862951042,
+      "bias": -0.023086252023609054,
+      "n_rows": 69504,
+      "actual_units": 891353
+    },
+    {
+      "level": "item-store-week",
+      "group_by": "demand_type",
+      "group": "smooth",
+      "method": "snaive",
+      "wape": 0.5608350451504622,
+      "bias": 0.0002221342161859555,
+      "n_rows": 69504,
+      "actual_units": 891353
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "overall",
+      "group": "all",
+      "method": "naive",
+      "wape": 0.08752860817254891,
+      "bias": -0.053201162985689415,
+      "n_rows": 336,
+      "actual_units": 1270179
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "overall",
+      "group": "all",
+      "method": "ma4",
+      "wape": 0.072928303805999,
+      "bias": -0.029481671480948747,
+      "n_rows": 336,
+      "actual_units": 1270179
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "overall",
+      "group": "all",
+      "method": "snaive",
+      "wape": 0.09379859059234959,
+      "bias": -0.05177931614363015,
+      "n_rows": 336,
+      "actual_units": 1270179
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "1",
+      "method": "naive",
+      "wape": 0.06228841582796938,
+      "bias": -0.015659684252571752,
+      "n_rows": 84,
+      "actual_units": 305434
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "1",
+      "method": "ma4",
+      "wape": 0.05998513590497456,
+      "bias": 0.009000307758795682,
+      "n_rows": 84,
+      "actual_units": 305434
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "1",
+      "method": "snaive",
+      "wape": 0.07568574552931238,
+      "bias": -0.015194772029309115,
+      "n_rows": 84,
+      "actual_units": 305434
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "2",
+      "method": "naive",
+      "wape": 0.09741183863574755,
+      "bias": -0.07387133739126149,
+      "n_rows": 84,
+      "actual_units": 324632
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "2",
+      "method": "ma4",
+      "wape": 0.0727623894132433,
+      "bias": -0.050669681362280984,
+      "n_rows": 84,
+      "actual_units": 324632
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "2",
+      "method": "snaive",
+      "wape": 0.0754331057936371,
+      "bias": -0.027927006579758003,
+      "n_rows": 84,
+      "actual_units": 324632
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "3",
+      "method": "naive",
+      "wape": 0.10404843097908383,
+      "bias": -0.07468084058649005,
+      "n_rows": 84,
+      "actual_units": 324916
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "3",
+      "method": "ma4",
+      "wape": 0.08284756675571532,
+      "bias": -0.05149946447697251,
+      "n_rows": 84,
+      "actual_units": 324916
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "3",
+      "method": "snaive",
+      "wape": 0.10652599441086312,
+      "bias": -0.07392679954203547,
+      "n_rows": 84,
+      "actual_units": 324916
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "4",
+      "method": "naive",
+      "wape": 0.08477872568584092,
+      "bias": -0.04614891639197074,
+      "n_rows": 84,
+      "actual_units": 315197
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "4",
+      "method": "ma4",
+      "wape": 0.07541632693204567,
+      "bias": -0.022252749867543154,
+      "n_rows": 84,
+      "actual_units": 315197
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "h",
+      "group": "4",
+      "method": "snaive",
+      "wape": 0.11714578501698937,
+      "bias": -0.08896658280377034,
+      "n_rows": 84,
+      "actual_units": 315197
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "260",
+      "method": "naive",
+      "wape": 0.14280685100725146,
+      "bias": -0.12609109739959704,
+      "n_rows": 84,
+      "actual_units": 318143
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "260",
+      "method": "ma4",
+      "wape": 0.1188270683309078,
+      "bias": -0.09473412899230849,
+      "n_rows": 84,
+      "actual_units": 318143
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "260",
+      "method": "snaive",
+      "wape": 0.11271660856910257,
+      "bias": -0.05062503339693157,
+      "n_rows": 84,
+      "actual_units": 318143
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "264",
+      "method": "naive",
+      "wape": 0.06866985500066689,
+      "bias": -0.02127037961498644,
+      "n_rows": 84,
+      "actual_units": 314898
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "264",
+      "method": "ma4",
+      "wape": 0.04842361653614821,
+      "bias": 0.01030492413416408,
+      "n_rows": 84,
+      "actual_units": 314898
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "264",
+      "method": "snaive",
+      "wape": 0.08706946376286924,
+      "bias": -0.0599622734980851,
+      "n_rows": 84,
+      "actual_units": 314898
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "268",
+      "method": "naive",
+      "wape": 0.061917885571101776,
+      "bias": -0.007748157606829929,
+      "n_rows": 84,
+      "actual_units": 311687
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "268",
+      "method": "ma4",
+      "wape": 0.05959504246247036,
+      "bias": 0.010302001687590436,
+      "n_rows": 84,
+      "actual_units": 311687
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "268",
+      "method": "snaive",
+      "wape": 0.0798525443794576,
+      "bias": -0.028230243802276,
+      "n_rows": 84,
+      "actual_units": 311687
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "272",
+      "method": "naive",
+      "wape": 0.07626647329398281,
+      "bias": -0.056374077818166175,
+      "n_rows": 84,
+      "actual_units": 325451
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "272",
+      "method": "ma4",
+      "wape": 0.06453966956623271,
+      "bias": -0.042292080835517484,
+      "n_rows": 84,
+      "actual_units": 325451
+    },
+    {
+      "level": "dept-store-week",
+      "group_by": "origin_idx",
+      "group": "272",
+      "method": "snaive",
+      "wape": 0.09517254517577146,
+      "bias": -0.06754319390630233,
+      "n_rows": 84,
+      "actual_units": 325451
+    }
+  ]
+}
