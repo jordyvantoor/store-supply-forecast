@@ -91,6 +91,11 @@ def bias(actual: pd.Series, forecast: pd.Series) -> float:
     return float((forecast - actual).sum() / actual.sum())
 
 
+def p90_coverage(actual: pd.Series, p90: pd.Series) -> float:
+    """Share of actuals at or below the P90 forecast. Well calibrated is about 0.90."""
+    return float((actual <= p90).mean())
+
+
 def to_dept_level(fc: pd.DataFrame, methods: list[str]) -> pd.DataFrame:
     """Sum actuals and forecasts to department x store x target week.
 
@@ -170,6 +175,21 @@ def demand_type(df: pd.DataFrame, cutoff_idx: int) -> pd.Series:
     return out.reindex(all_series, fill_value="new")
 
 
+# ------------------------------------------------------------------- reports
+
+def update_metrics(sections: dict, path: Path | None = None) -> None:
+    """Merge `sections` into reports/metrics.json, keeping keys written by other steps.
+
+    Each pipeline step (backtest, models, inventory) owns its own keys, so
+    re-running one step never wipes another step's results.
+    """
+    path = path or REPORTS_DIR / "metrics.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    metrics = json.loads(path.read_text()) if path.exists() else {}
+    metrics.update(sections)
+    path.write_text(json.dumps(metrics, indent=2))
+
+
 # ---------------------------------------------------------------------- main
 
 def main(data_path: Path = PROCESSED_DIR / "tx_weekly.parquet") -> None:
@@ -201,7 +221,7 @@ def main(data_path: Path = PROCESSED_DIR / "tx_weekly.parquet") -> None:
         "demand_type_counts": types.value_counts().to_dict(),
         "baselines": board.to_dict(orient="records"),
     }
-    (REPORTS_DIR / "metrics.json").write_text(json.dumps(metrics, indent=2))
+    update_metrics(metrics)
 
     overall = board[board["group_by"] == "overall"]
     print(overall.pivot(index="method", columns="level", values=["wape", "bias"]).round(3))
