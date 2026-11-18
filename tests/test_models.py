@@ -8,7 +8,8 @@ import pandas as pd
 import pytest
 
 from forecast.features import build_features, build_horizon_frame
-from forecast.models import ML_MODELS, baseline_forecasts, baseline_p90, fit_fold, fold_of, predict
+from forecast.models import (ML_MODELS, SCALED_FEATURES, LevelScaledRegressor, baseline_forecasts,
+                             baseline_p90, fit_fold, fold_of, predict)
 from test_features import make_raw
 
 FOLDS = [56, 60]
@@ -82,3 +83,53 @@ def test_baseline_p90_is_ma4_plus_error_quantile(raw):
     q90 = (window["actual"] - window["ma4"]).quantile(0.9)
     ma4_now = hist.loc[hist.origin_idx == ORIGIN, "ma4"].iloc[0]
     assert row["baseline_p90"] == pytest.approx(max(ma4_now + q90, 0))
+
+
+# ------------------------------------------------------------ level scaling
+
+def test_level_scaling_divides_sales_features_by_floored_level():
+    X = pd.DataFrame({"roll_mean_13": [200.0, 0.4], "lag_1": [240.0, 1.0],
+                      "sales_same_week_last_year": [100.0, 0.0], "sell_price": [3.0, 2.0]})
+    for c in SCALED_FEATURES:
+        if c not in X:
+            X[c] = X["lag_1"]
+    lvl = LevelScaledRegressor.level(X)
+    scaled = LevelScaledRegressor.scale(X, lvl)
+    assert lvl.tolist() == [200.0, 1.0]                     # slow seller floored at 1
+    assert scaled["lag_1"].tolist() == [1.2, 1.0]
+    assert scaled["sales_same_week_last_year"].tolist() == [0.5, 0.0]
+    assert scaled["sell_price"].tolist() == [3.0, 2.0]       # not a sales feature: unchanged
+    assert scaled["level"].tolist() == [200.0, 1.0]
+
+
+def poisson_deviance(y, mu):
+    y, mu = np.asarray(y, float), np.asarray(mu, float)
+    term = np.where(y > 0, y * np.log(np.where(y > 0, y, 1) / mu), 0.0)
+    return 2 * (term - y + mu)
+
+
+def pinball(y, q_pred, q):
+    diff = np.asarray(y, float) - np.asarray(q_pred, float)
+    return np.maximum(q * diff, (q - 1) * diff)
+
+
+def test_weighted_scaled_loss_equals_unscaled_loss():
+    """Why rows are weighted by their level: loss(y/L, f/L) * L == loss(y, f).
+
+    So the scaled model minimises exactly the same loss as an unscaled one;
+    only how the features are presented changes.
+    """
+    y = np.array([0.0, 3.0, 120.0, 480.0])
+    f = np.array([0.5, 2.0, 150.0, 400.0])
+    L = np.array([1.0, 2.5, 140.0, 450.0])
+    assert (poisson_deviance(y / L, f / L) * L).sum() == pytest.approx(poisson_deviance(y, f).sum())
+    for q in (0.5, 0.9):
+        assert (pinball(y / L, f / L, q) * L).sum() == pytest.approx(pinball(y, f, q).sum())
+
+
+def test_scaled_model_predicts_in_units(raw):
+    """Predictions come back on the original scale (units), not as ratios."""
+    preds = forecast_at(raw, ORIGIN, 1)
+    frame = build_horizon_frame(build_features(raw, parallel=False), 1)
+    level = frame.loc[frame.origin_idx == ORIGIN, "roll_mean_13"]
+    assert preds["hgbr"].mean() == pytest.approx(level.mean(), rel=0.5)
