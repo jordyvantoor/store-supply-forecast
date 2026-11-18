@@ -903,5 +903,17 @@
         "inventory_saving": 0.13720061676299855
       }
     ]
+  },
+  "exceptions": {
+    "generated_by": "python -m forecast.exceptions",
+    "as_of_idx": 272,
+    "as_of_week_start": "2016-04-16",
+    "flag_counts": {
+      "drift": 301,
+      "projected_stockout": 93,
+      "zero_run": 48
+    },
+    "n_flagged_series": 401,
+    "n_series": 9147
   }
 }
