@@ -698,5 +698,158 @@
       "n_rows": 84,
       "actual_units": 325451
     }
-  ]
+  ],
+  "models": {
+    "generated_by": "python -m forecast.models",
+    "methods": [
+      "naive",
+      "ma4",
+      "snaive",
+      "hgbr",
+      "xgb",
+      "p50"
+    ],
+    "overall": [
+      {
+        "level": "item-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "naive",
+        "wape": 0.4424455135850931,
+        "bias": -0.053201162985689415,
+        "n_rows": 146352,
+        "actual_units": 1270179
+      },
+      {
+        "level": "item-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "ma4",
+        "wape": 0.40246020442787983,
+        "bias": -0.029481671480948747,
+        "n_rows": 146352,
+        "actual_units": 1270179
+      },
+      {
+        "level": "item-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "snaive",
+        "wape": 0.6462136439037333,
+        "bias": -0.05177931614363015,
+        "n_rows": 146352,
+        "actual_units": 1270179
+      },
+      {
+        "level": "item-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "hgbr",
+        "wape": 0.404359682982039,
+        "bias": -0.0164562271657914,
+        "n_rows": 146352,
+        "actual_units": 1270179
+      },
+      {
+        "level": "item-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "xgb",
+        "wape": 0.3902096546943168,
+        "bias": -0.020195905267567118,
+        "n_rows": 146352,
+        "actual_units": 1270179
+      },
+      {
+        "level": "item-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "p50",
+        "wape": 0.39033402226436537,
+        "bias": -0.11068366581826358,
+        "n_rows": 146352,
+        "actual_units": 1270179
+      },
+      {
+        "level": "dept-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "naive",
+        "wape": 0.08752860817254891,
+        "bias": -0.053201162985689415,
+        "n_rows": 336,
+        "actual_units": 1270179
+      },
+      {
+        "level": "dept-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "ma4",
+        "wape": 0.072928303805999,
+        "bias": -0.029481671480948747,
+        "n_rows": 336,
+        "actual_units": 1270179
+      },
+      {
+        "level": "dept-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "snaive",
+        "wape": 0.09379859059234959,
+        "bias": -0.05177931614363015,
+        "n_rows": 336,
+        "actual_units": 1270179
+      },
+      {
+        "level": "dept-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "hgbr",
+        "wape": 0.06034895777643096,
+        "bias": -0.0164562271657914,
+        "n_rows": 336,
+        "actual_units": 1270179
+      },
+      {
+        "level": "dept-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "xgb",
+        "wape": 0.058744831976291885,
+        "bias": -0.02019590438454258,
+        "n_rows": 336,
+        "actual_units": 1270179
+      },
+      {
+        "level": "dept-store-week",
+        "group_by": "overall",
+        "group": "all",
+        "method": "p50",
+        "wape": 0.11761326398612572,
+        "bias": -0.11068366581826358,
+        "n_rows": 336,
+        "actual_units": 1270179
+      }
+    ],
+    "p90_coverage": [
+      {
+        "group_by": "overall",
+        "group": "all",
+        "method": "p90",
+        "coverage": 0.8954438613753143,
+        "n_rows": 146352
+      },
+      {
+        "group_by": "overall",
+        "group": "all",
+        "method": "baseline_p90",
+        "coverage": 0.8724650158521919,
+        "n_rows": 146352
+      }
+    ],
+    "quantile_crossing_rows": 43,
+    "n_forecast_rows_all_weeks": 530526,
+    "n_scored_rows": 146352,
+    "runtime_minutes": 12.3
+  }
 }
