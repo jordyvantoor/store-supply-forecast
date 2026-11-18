@@ -77,43 +77,54 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Reason:** Prices are known in advance (CLAUDE.md rule 4), so the target week's price is allowed. Prices after the target week are not; a leakage test checks this.
 - **Alternatives:** Ratio against the price at the origin (simpler, but ignores the price history before it).
 
-## 2026-11-19: `item_id` is not a feature in HistGradientBoosting (deviation from CLAUDE.md)
+## 2026-11-18: `item_id` is not a feature in HistGradientBoosting (deviation from CLAUDE.md)
 - **Decision:** HGBR models (`hgbr`, `p50`, `p90`) use department, category and store as categoricals but leave out `item_id`. XGBoost (`xgb`) does use `item_id` as a categorical.
 - **Reason:** HGBR's native categorical support allows at most 255 levels, and there are 3,049 items. Each item's own sales level still reaches the model through the lag and rolling features, which matter more than a fixed item identity anyway. XGBoost shows whether the item identity adds anything.
 - **Alternatives:** Integer-encode `item_id` as a number (the tree would split on arbitrary ID order); target-encode it (needs its own leakage-safe scheme per fold); one-hot (3,049 sparse columns).
 
-## 2026-11-19: HGBR without early stopping
+## 2026-11-18: HGBR without early stopping
 - **Decision:** `early_stopping=False`, keeping the default 100 iterations.
 - **Reason:** With more than 10,000 rows, HGBR's default early stopping holds out a *random* 10% of the training rows. That's a random split inside time-series data, and the result depends on the draw. Fixed iterations are deterministic, which the end-to-end leakage test relies on, and stay close to the defaults.
 - **Alternatives:** Early stopping on a time-based validation slice (more code; a later tuning step).
 
-## 2026-11-19: Point forecast = Poisson mean; P50 reported next to it
+## 2026-11-18: Point forecast = Poisson mean; P50 reported next to it
 - **Decision:** `hgbr` (Poisson loss) is the main point forecast. The median model `p50` is scored alongside it on the same rows.
 - **Reason:** Poisson suits non-negative counts with many zeros, and it predicts the *mean*, which keeps total bias near zero. WAPE, however, is minimized by the *median*. For skewed or intermittent series the median is lower than the mean (often 0), so `p50` may win on WAPE while under-forecasting totals. Both are shown so the trade-off is visible instead of hidden.
 - **Alternatives:** Use only the model that wins on WAPE (flatters the metric, under-stocks); Tweedie loss (an extra parameter to tune).
 
-## 2026-11-19: P90 from quantile loss; crossing fixed; baseline P90 from past errors
+## 2026-11-18: P90 from quantile loss; crossing fixed; baseline P90 from past errors
 - **Decision:** `p90` = HGBR with quantile loss 0.9. If it comes out below `p50` on a row, it is raised to `p50`, and the count is reported. The baseline's P90 = 4-week moving average + the 90th percentile of that series' own moving-average errors for the same horizon, over the 52 weeks whose targets are at or before the fold origin.
 - **Reason:** Two separately trained quantile models can cross, and a P90 below the median makes no sense. The baseline needs a P90 too, so the stocking comparison is fair. "Safety stock from historical forecast error" is what a planner would do without a model.
 - **Alternatives:** Assume Poisson-distributed demand for the baseline P90 (understates the spread of retail sales, which would handicap the baseline).
 
-## 2026-11-19: Forecasts for every week of the test window; scores on the fold origins only
+## 2026-11-18: Forecasts for every week of the test window; scores on the fold origins only
 - **Decision:** Every week from the first fold origin onwards is forecast by the model of the latest fold origin at or before it, using that week's features. WAPE, bias and coverage use only the 4 fold origins. The inventory simulation uses all weeks.
 - **Reason:** A weekly review policy needs an order-up-to level every week. The model only saw targets up to its fold origin, which is earlier than the week it forecasts, so this doesn't leak. The scoreboard follows CLAUDE.md's 4-origin design.
 - **Alternatives:** Retrain every week (16 times the training cost for little gain); simulate only at fold origins (not a weekly review).
 
-## 2026-11-19: Inventory comparison at equal fill rate
+## 2026-11-18: Inventory comparison at equal fill rate
 - **Decision:** Besides simulating both policies as they are, scale every order-up-to level by a factor `k` (0.5–2.0) and trace fill rate vs. average on-hand. The headline is the baseline's inventory, interpolated at the model policy's fill rate, compared with the model's inventory.
 - **Reason:** As-is results usually differ on *both* fill rate and inventory, which makes "better" ambiguous. Comparing inventory at the same fill rate turns it into one number. `k` is chosen on the test window for both sides; it is a way to compare, not a policy someone would run.
 - **Alternatives:** Report only the as-is numbers (ambiguous); tune the target service level per policy (more moving parts).
 
-## 2026-11-19: The app shows the last backtest origin, not a future forecast
+## 2026-11-18: The app shows the last backtest origin, not a future forecast
 - **Decision:** The app's forecast is the one made at the last fold origin (2016-04-16) for the 4 weeks after it, shown next to what actually sold.
 - **Reason:** Forecasting past the end of the data would need prices and calendar for weeks outside the processed table, which is a pipeline extension beyond the MVP. Showing forecast vs. actual is also more convincing for a portfolio.
 - **Alternatives:** Extend the pipeline with M5's future-week prices and calendar (after the MVP).
 
-## 2026-11-19: Known weakness: HGBR on the top-selling item-stores (open)
+## 2026-11-18: Known weakness: HGBR on the top-selling item-stores (see the level-scaling entry below)
 - **Finding:** HGBR's item-level WAPE is far worse than the 4-week moving average on the top 1% of item-stores by volume (18% of units). It beats the moving average in the 50–99% volume bands. Cause: HGBR sorts each feature into at most 255 quantile bins (95 for `roll_mean_4`), and everything above about 160 units/week shares the top bin, so the model can't tell a 200-unit seller from a 500-unit one. XGBoost avoids this through `item_id`.
 - **Decision for now:** keep HGBR as the main model, report the weakness openly (notebook 03, section 1b), and propose a fix as the next step.
 - **Proposed fix:** train on sales relative to each series' own level (e.g. ÷ the 13-week average, with the lag and rolling features scaled the same way), then multiply back. All series then share one scale, so the bins no longer clip the top. This needs leakage tests for the scaling.
 - **Alternatives:** use XGBoost as the main point forecast (it is better at item level, but there is no XGBoost P90 yet); accept the weakness.
+
+## 2026-11-18: Level-scaled HGBR tried, not adopted (follow-up to the top-seller weakness)
+- **What was tried** (commit `experiment: level-scaled HGBR…`, reverted in the next commit): divide the sales features and the target by each series' level (`max(roll_mean_13, 1)`), weight rows by that level, add `level` as a feature, and multiply predictions back. Weighting by the level makes the scaled Poisson and pinball losses equal to the unscaled ones, so only the presentation of the features changes.
+- **Decision rule, set before the results:** adopt only if overall item-level WAPE improves and department WAPE and P90 coverage don't get meaningfully worse. Time box 1.5 hours.
+- **What happened:**
+  - **Poisson + scaling was numerically unstable.** On the h=4, origin-260 fold, some leaf values reached 73 on the log scale, and raw scores on real test rows reached 10.5, meaning forecasts tens of thousands of times a series' level. HGBR sizes each leaf as gradient ÷ hessian; for rows predicted near zero the hessian is tiny, and the level weights inflate the gradients. XGBoost has `max_delta_step` for exactly this; HGBR doesn't. The full run failed in permutation importance with infinite predictions.
+  - **Squared-error loss on the scaled target** (stable: its leaves are weighted means) was tested on one fold. One week ahead it improved overall WAPE (0.359 vs 0.367) and the top 1% (0.150 vs 0.194). Four weeks ahead it was worse overall (0.484 vs 0.453) and in every band except the top 1%.
+- **Where the numbers come from:** the leaf values, raw scores and single-fold WAPEs above were printed by one-off diagnostic scripts during the experiment. They are not pipeline outputs in `reports/`, so treat them as diagnostic evidence for this decision, not as project results.
+- **Decision:** keep the current models. Neither variant met the decision rule within the time box, and the squared-error variant would also give up the Poisson loss CLAUDE.md asks for. The weakness stays documented (notebook 03, section 1b).
+- **Kept from the attempt:** `backtest.volume_band_scores` and `reports/volume_bands.csv`, so the weakness is tracked by code from now on.
+- **Next options (after the MVP):** use XGBoost as the point forecast (it already handles top sellers) and add an XGBoost P90 (`reg:quantileerror`); or finish the squared-error variant and validate it on all folds and horizons.
