@@ -128,3 +128,21 @@ Important modeling and engineering choices, with the reasoning behind them.
 - **Decision:** keep the current models. Neither variant met the decision rule within the time box, and the squared-error variant would also give up the Poisson loss CLAUDE.md asks for. The weakness stays documented (notebook 03, section 1b).
 - **Kept from the attempt:** `backtest.volume_band_scores` and `reports/volume_bands.csv`, so the weakness is tracked by code from now on.
 - **Next options (after the MVP):** use XGBoost as the point forecast (it already handles top sellers) and add an XGBoost P90 (`reg:quantileerror`); or finish the squared-error variant and validate it on all folds and horizons.
+
+## 2026-11-18: Exception flags and their thresholds
+- **Decision:** Three flags at the as-of week (the last fold origin), using only sales up to that week and forecasts made at or before it (covered by a scramble-the-future leakage test):
+  - **Drift:** over the last 4 weeks, |actual − forecast| / forecast > 50% (h=1 HGBR forecasts), and at least 20 units of actual or forecast.
+  - **Projected stockout:** simulated stock at the end of the as-of week, plus the order already arriving next week, is at least 1 unit below next week's P50.
+  - **Zero-sales run:** 3 weeks of zero sales after 13 weeks with sales in ≥ 90% of them and an average ≥ 2 units/week.
+- **Reason:** The thresholds were calibrated read-only on the as-of week, so the list is a few hundred item-stores a planner can work through (counts in `reports/metrics.json`, section `exceptions`). The volume minimums stop slow sellers from flagging on noise. P50 rather than P90 for the stockout flag: against P90 the flag fired on several times as many series in the calibration, mostly ones that will probably be fine. P50 means "stock likely won't last the week".
+- **Alternatives:** P90-based stockout risk (too many flags); statistical drift tests per series (harder to explain to a planner than a percentage with a volume floor).
+
+## 2026-11-18: Stock on hand is simulated, and one order plan feeds the app and Excel
+- **Decision:** On-hand and arriving stock come from the model-driven policy in `forecast.inventory`, run up to the as-of week. `python -m forecast.exceptions` writes them, with the P50/P90 per week, to `data/processed/order_plan.parquet`, which both the app and the Excel export read.
+- **Reason:** M5 has no inventory data, so a stockout projection needs *some* stock position; the simulated one uses the same policy as the headline result. One file means the app and the workbook can't disagree. Both say the stock is simulated.
+- **Alternatives:** Assume stock = order-up-to level for every series (never projects a stockout, so the flag would be empty).
+
+## 2026-11-18: Excel order quantities are live formulas
+- **Decision:** The Forecast sheet has `Order-up-to = P90 wk1 + P90 wk2` and `Order qty = MAX(0, order-up-to − on hand − arriving)` as formulas, not values. Quantities are not rounded.
+- **Reason:** A planner overrides a forecast or corrects the on-hand count and sees the order change, which is how such a sheet is used. Same policy as the simulation, so the numbers match the app.
+- **Alternatives:** Static values (stale as soon as anything is edited); rounding up to case packs (M5 has no pack sizes).

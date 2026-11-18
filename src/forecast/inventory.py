@@ -37,7 +37,10 @@ def simulate(demand: np.ndarray, order_up_to: np.ndarray, lead_time: int = LEAD_
 
     demand:      (n_series, T) demand in weeks 1..T
     order_up_to: (n_series, R) S at the reviews at the end of weeks 0..R-1 (R <= T)
-    Returns per series x week arrays: sold, lost, end_on_hand, stockout.
+    Returns per series x week arrays: sold, lost, end_on_hand, stockout, and
+    `arrivals` (n_series, T + lead_time + 2): units arriving at the start of
+    each week, so arrivals[:, T + 1] is what is already on its way for the
+    week after the simulation ends.
     """
     n, T = demand.shape
     on_hand = order_up_to[:, 0].astype(float).copy()   # start full: on hand = S_0
@@ -56,7 +59,8 @@ def simulate(demand: np.ndarray, order_up_to: np.ndarray, lead_time: int = LEAD_
             arrivals[:, t + 1 + lead_time] += q
 
     lost = demand - sold
-    return {"sold": sold, "lost": lost, "end_on_hand": end_on_hand, "stockout": lost > 0}
+    return {"sold": sold, "lost": lost, "end_on_hand": end_on_hand, "stockout": lost > 0,
+            "arrivals": arrivals}
 
 
 def summarize(sim: dict, demand: np.ndarray) -> dict:
@@ -69,24 +73,36 @@ def summarize(sim: dict, demand: np.ndarray) -> dict:
     }
 
 
+def demand_matrix(fc: pd.DataFrame, weeks: list[int]) -> pd.DataFrame:
+    """Actual sales per series (rows) for the given weeks (columns).
+
+    Taken from the h=1 rows: the actual of origin t-1 is the sales of week t.
+    """
+    h1 = fc[(fc["h"] == 1) & fc["target_idx"].isin(weeks)]
+    return h1.pivot_table(index=SERIES, columns="target_idx", values="actual",
+                          observed=True)[weeks]
+
+
+def order_up_to_matrix(fc: pd.DataFrame, reviews: list[int], p90_col: str) -> pd.DataFrame:
+    """S per series (rows) at each review week (columns): P90(h=1) + P90(h=2) made there."""
+    rows = fc[fc["h"].isin([1, 2]) & fc["origin_idx"].isin(reviews)]
+    return rows.pivot_table(index=SERIES, columns="origin_idx", values=p90_col,
+                            aggfunc="sum", observed=True)[reviews]
+
+
 def policy_inputs(fc: pd.DataFrame, first_review: int, last_week: int,
                   p90_col: str) -> tuple[np.ndarray, np.ndarray, pd.Index]:
     """Demand and order-up-to arrays from the backtest forecasts.
 
-    Demand in week t = the h=1 actual of origin t-1. S at review w = the P90
-    for h=1 plus the P90 for h=2, both forecast at origin w.
+    Demand weeks: first_review+1 .. last_week. Reviews: first_review ..
+    last_week-2 (a review's h=2 target must still be inside the data).
     """
-    h1 = fc[fc["h"] == 1].pivot_table(index=SERIES, columns="origin_idx",
-                                      values=["actual", p90_col], observed=True)
-    h2 = fc[fc["h"] == 2].pivot_table(index=SERIES, columns="origin_idx",
-                                      values=p90_col, observed=True)
-    demand_origins = list(range(first_review, last_week))       # demand weeks +1
-    review_origins = list(range(first_review, last_week - 1))   # need h=2 target <= last
-    demand = h1["actual"][demand_origins].to_numpy(float)
-    s = (h1[p90_col][review_origins] + h2[review_origins]).to_numpy(float)
-    if np.isnan(demand).any() or np.isnan(s).any():
+    demand = demand_matrix(fc, list(range(first_review + 1, last_week + 1)))
+    s = order_up_to_matrix(fc, list(range(first_review, last_week - 1)), p90_col)
+    s = s.reindex(demand.index)
+    if demand.isna().any().any() or s.isna().any().any():
         raise ValueError("Missing forecasts or actuals in the simulation window")
-    return demand, s, h1.index
+    return demand.to_numpy(float), s.to_numpy(float), demand.index
 
 
 def tradeoff_curve(demand: np.ndarray, s: np.ndarray, ks=K_GRID) -> pd.DataFrame:
